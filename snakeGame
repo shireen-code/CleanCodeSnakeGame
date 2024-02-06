@@ -1,0 +1,107 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using static System.Console;
+
+namespace Snake
+{
+    class Program
+    {
+        const int InitialScore =  5;
+        const int WindowWidth =  32;
+        const int WindowHeight =  16;
+        
+        static void Main()
+        {
+            WindowHeight =  16;
+            WindowWidth =  32;
+            
+            var rand = new Random();
+            var score = InitialScore;
+            var head = new Pixel(WindowWidth /  2, WindowHeight /  2, ConsoleColor.Red);
+            var berry = new Pixel(rand.Next(1, WindowWidth -  2), rand.Next(1, WindowHeight -  2), ConsoleColor.Cyan);
+            var body = new LinkedList<Pixel>();
+            var currentMovement = Direction.Right;
+            var lastSegment = new Pixel(head.XPos, head.YPos, ConsoleColor.Green);
+            var gameover = false;
+
+            while (!gameover)
+            {
+                Clear();
+                DrawBorder();
+                DrawPixel(head);
+                DrawPixel(berry);
+                DrawBody(body);
+
+                if (berry.Equals(head))
+                {
+                    score++;
+                    berry = GenerateBerry(rand);
+                }
+
+                gameover = CheckCollision(head, body, lastSegment);
+                UpdateSnakePosition(ref head, ref lastSegment, currentMovement);
+                body.AddFirst(lastSegment);
+
+                if (body.Count > score)
+                {
+                    body.RemoveLast();
+                }
+
+                currentMovement = ReadMovement(currentMovement);
+            }
+
+            ShowEndMessage(score - InitialScore);
+            ReadKey();
+        }
+
+        // ... Other methods remain unchanged ...
+
+        static void ShowEndMessage(int finalScore)
+        {
+            SetCursorPosition(WindowWidth /  5, WindowHeight /  2);
+            WriteLine($"Game over, Score: {finalScore}");
+        }
+
+        static void DrawBody(LinkedList<Pixel> body)
+        {
+            foreach (var segment in body)
+            {
+                DrawPixel(segment);
+            }
+        }
+
+        static bool CheckCollision(Pixel head, LinkedList<Pixel> body, Pixel lastSegment)
+        {
+            return head.XPos ==  0 || head.XPos == WindowWidth -  1 || head.YPos ==  0 || head.YPos == WindowHeight -  1 || body.Contains(head);
+        }
+
+        static void UpdateSnakePosition(ref Pixel head, ref Pixel lastSegment, Direction direction)
+        {
+            lastSegment.XPos = head.XPos;
+            lastSegment.YPos = head.YPos;
+            lastSegment.ScreenColor = ConsoleColor.Green;
+
+            switch (direction)
+            {
+                case Direction.Up:
+                    head.YPos--;
+                    break;
+                case Direction.Down:
+                    head.YPos++;
+                    break;
+                case Direction.Left:
+                    head.XPos--;
+                    break;
+                case Direction.Right:
+                    head.XPos++;
+                    break;
+            }
+        }
+
+        static Pixel GenerateBerry(Random rand)
+        {
+            return new Pixel(rand.Next(1, WindowWidth -  2), rand.Next(1, WindowHeight -  2), ConsoleColor.Cyan);
+        }
+    }
+}
